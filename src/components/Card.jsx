@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import { Link } from "react-router-dom";
 
 const Container = styled.div`
   width: 360px;
@@ -47,17 +48,19 @@ const Info = styled.div`
 
 const Card = () => {
   return (
-    <Container>
-      <Image src="https://user-images.githubusercontent.com/83646986/181151553-f588d882-f53d-4b8c-8ac6-6e75b55a8c86.JPG" />
-      <Details>
-        <ChannelImage src="https://user-images.githubusercontent.com/83646986/181155356-b8d3e000-467e-426a-afb3-af5c7348d3a4.JPG" />
-        <Texts>
-          <Title>Test Video</Title>
-          <ChannelName>황튜브</ChannelName>
-          <Info>조회수 35만회 • 18시간 전</Info>
-        </Texts>
-      </Details>
-    </Container>
+    <Link to="/video/test" style={{ textDecoration: "none" }}>
+      <Container>
+        <Image src="https://user-images.githubusercontent.com/83646986/181151553-f588d882-f53d-4b8c-8ac6-6e75b55a8c86.JPG" />
+        <Details>
+          <ChannelImage src="https://user-images.githubusercontent.com/83646986/181155356-b8d3e000-467e-426a-afb3-af5c7348d3a4.JPG" />
+          <Texts>
+            <Title>Test Video</Title>
+            <ChannelName>황튜브</ChannelName>
+            <Info>조회수 35만회 • 18시간 전</Info>
+          </Texts>
+        </Details>
+      </Container>
+    </Link>
   );
 };
 
