@@ -98,14 +98,21 @@ const Menu = ({ darkMode, setDarkMode }) => {
         <Item>
           <HomeIcon />홈
         </Item>
-        <Item>
-          <ExploreOutlinedIcon />
-          탐색
-        </Item>
-        <Item>
-          <SubscriptionsOutlinedIcon />
-          구독
-        </Item>
+        <Link to="trends" style={{ textDecoration: "none", color: "inherit" }}>
+          <Item>
+            <ExploreOutlinedIcon />
+            탐색
+          </Item>
+        </Link>
+        <Link
+          to="subscriptions"
+          style={{ textDecoration: "none", color: "inherit" }}
+        >
+          <Item>
+            <SubscriptionsOutlinedIcon />
+            구독
+          </Item>
+        </Link>
         <Hr />
         <Item>
           <VideoLibraryOutlinedIcon />
