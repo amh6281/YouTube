@@ -11,7 +11,7 @@ import Card from "../components/Card";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
-import { fetchSuccess } from "../redux/videoSlice";
+import { like, dislike, fetchSuccess } from "../redux/videoSlice";
 import { format } from "timeago.js";
 
 const Container = styled.div`
@@ -136,6 +136,16 @@ const Video = () => {
     fetchData();
   }, [path, dispatch]);
 
+  const handleLike = async () => {
+    await axios.put(`/users/like/${currentVideo._id}`);
+    dispatch(like(currentUser._id));
+  };
+
+  const handleDislike = async () => {
+    await axios.put(`/users/dislike/${currentVideo._id}`);
+    dispatch(dislike(currentUser._id));
+  };
+
   return (
     <Container>
       {currentVideo && (
@@ -157,11 +167,21 @@ const Video = () => {
               조회수 {currentVideo.views}회 • {format(currentVideo.createdAt)}
             </Info>
             <Buttons>
-              <Button>
-                <ThumbUpOutlinedIcon /> {currentVideo.likes?.length}
+              <Button onClick={handleLike}>
+                {currentVideo.likes?.includes(currentUser._id) ? (
+                  <ThumbUpIcon />
+                ) : (
+                  <ThumbUpOutlinedIcon />
+                )}
+                {""} {currentVideo.likes?.length}
               </Button>
-              <Button>
-                <ThumbDownOffAltOutlinedIcon /> 싫어요
+              <Button onClick={handleDislike}>
+                {currentVideo.dislikes?.includes(currentUser._id) ? (
+                  <ThumbDownIcon />
+                ) : (
+                  <ThumbDownOffAltOutlinedIcon />
+                )}{" "}
+                싫어요
               </Button>
               <Button>
                 <ReplyOutlinedIcon /> 공유
