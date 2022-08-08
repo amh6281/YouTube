@@ -1,5 +1,14 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
+import app from "../firebase";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Container = styled.div`
   width: 100%;
@@ -15,7 +24,7 @@ const Container = styled.div`
 
 const Wrapper = styled.div`
   width: 600px;
-  height: 600px;
+  height: 800px;
   background-color: ${({ theme }) => theme.bgLighter};
   color: ${({ theme }) => theme.text};
   padding: 20px;
@@ -24,14 +33,12 @@ const Wrapper = styled.div`
   gap: 20px;
   position: relative;
 `;
-
 const Close = styled.div`
   position: absolute;
   top: 10px;
   right: 10px;
   cursor: pointer;
 `;
-
 const Title = styled.h1`
   text-align: center;
 `;
@@ -42,8 +49,8 @@ const Input = styled.input`
   border-radius: 3px;
   padding: 10px;
   background-color: transparent;
+  z-index: 999;
 `;
-
 const Desc = styled.textarea`
   border: 1px solid ${({ theme }) => theme.soft};
   color: ${({ theme }) => theme.text};
@@ -51,7 +58,6 @@ const Desc = styled.textarea`
   padding: 10px;
   background-color: transparent;
 `;
-
 const Button = styled.button`
   border-radius: 3px;
   border: none;
@@ -61,25 +67,120 @@ const Button = styled.button`
   background-color: ${({ theme }) => theme.soft};
   color: ${({ theme }) => theme.textSoft};
 `;
-
 const Label = styled.label`
   font-size: 14px;
 `;
 
 const Upload = ({ setOpen }) => {
+  const [img, setImg] = useState(undefined);
+  const [video, setVideo] = useState(undefined);
+  const [imgPerc, setImgPerc] = useState(0);
+  const [videoPerc, setVideoPerc] = useState(0);
+  const [inputs, setInputs] = useState({});
+  const [tags, setTags] = useState([]);
+
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setInputs((prev) => {
+      return { ...prev, [e.target.name]: e.target.value };
+    });
+  };
+
+  const handleTags = (e) => {
+    setTags(e.target.value.split(","));
+  };
+
+  const uploadFile = (file, urlType) => {
+    const storage = getStorage(app);
+    const fileName = new Date().getTime() + file.name;
+    const storageRef = ref(storage, fileName);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        urlType === "imgUrl"
+          ? setImgPerc(Math.round(progress))
+          : setVideoPerc(Math.round(progress));
+        switch (snapshot.state) {
+          case "paused":
+            console.log("Upload is paused");
+            break;
+          case "running":
+            console.log("Upload is running");
+            break;
+          default:
+            break;
+        }
+      },
+      (error) => {},
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+          setInputs((prev) => {
+            return { ...prev, [urlType]: downloadURL };
+          });
+        });
+      }
+    );
+  };
+
+  useEffect(() => {
+    video && uploadFile(video, "videoUrl");
+  }, [video]);
+
+  useEffect(() => {
+    img && uploadFile(img, "imgUrl");
+  }, [img]);
+
+  const handleUpload = async (e) => {
+    e.preventDefault();
+    const res = await axios.post("/videos", { ...inputs, tags });
+    setOpen(false);
+    res.status === 200 && navigate(`/video/${res.data._id}`);
+  };
+
   return (
     <Container>
       <Wrapper>
         <Close onClick={() => setOpen(false)}>X</Close>
         <Title>동영상 업로드</Title>
-        <Label>동영상:</Label>
-        <Input type="file" accept="video/*" />
-        <Input type="text" placeholder="제목" />
-        <Desc placeholder="상세 설명" rows={8} />
-        <Input type="text" placeholder="#태그" />
-        <Label>이미지:</Label>
-        <Input type="file" accept="image/*" />
-        <Button>업로드</Button>
+        <Label>동영상 : </Label>
+        {videoPerc > 0 ? (
+          "Uploading:" + videoPerc
+        ) : (
+          <Input
+            type="file"
+            accept="video/*"
+            onChange={(e) => setVideo(e.target.files[0])}
+          />
+        )}
+        <Input
+          type="text"
+          placeholder="제목"
+          name="제목"
+          onChange={handleChange}
+        />
+        <Desc
+          placeholder="상세 설명"
+          name="상세 설명"
+          rows={8}
+          onChange={handleChange}
+        />
+        <Input type="text" placeholder="#태그" onChance={handleTags} />
+        <Label>대표 이미지 : </Label>
+        {imgPerc > 0 ? (
+          "Uploading:" + imgPerc + "%"
+        ) : (
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setImg(e.target.files[0])}
+          />
+        )}
+        <Button onClick={handleUpload}>업로드</Button>
       </Wrapper>
     </Container>
   );
