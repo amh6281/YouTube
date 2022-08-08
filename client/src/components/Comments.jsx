@@ -1,4 +1,6 @@
-import React from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import styled from "styled-components";
 import Comment from "../components/Comment";
 
@@ -19,25 +21,36 @@ const Avatar = styled.img`
 const Input = styled.input`
   border: none;
   border-bottom: 1px solid ${({ theme }) => theme.soft};
+  color: ${({ theme }) => theme.text};
   background-color: transparent;
   outline: none;
   padding: 5px;
   width: 100%;
 `;
 
-const Comments = () => {
+const Comments = ({ videoId }) => {
+  const { currentUser } = useSelector((state) => state.user);
+  const [comments, setComments] = useState([]);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const res = await axios.get(`/comments/${videoId}`);
+        setComments(res.data);
+      } catch (err) {}
+    };
+    fetchComments();
+  }, [videoId]);
+
   return (
     <Container>
       <NewComment>
-        <Avatar src="https://user-images.githubusercontent.com/83646986/156501089-92b5bf79-321b-4868-a8e9-314fa164ff4e.png" />
+        <Avatar src={currentUser.img} />
         <Input placeholder="댓글 추가..." />
       </NewComment>
-      <Comment />
-      <Comment />
-      <Comment />
-      <Comment />
-      <Comment />
-      <Comment />
+      {comments.map((comment) => (
+        <Comment key={comment._id} comment={comment} />
+      ))}
     </Container>
   );
 };
