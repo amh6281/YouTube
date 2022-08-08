@@ -13,6 +13,7 @@ import { useLocation } from "react-router-dom";
 import axios from "axios";
 import { like, dislike, fetchSuccess } from "../redux/videoSlice";
 import { format } from "timeago.js";
+import { subscription } from "../redux/userSlice";
 
 const Container = styled.div`
   display: flex;
@@ -113,6 +114,12 @@ const Subscribe = styled.button`
   cursor: pointer;
 `;
 
+const VideoFrame = styled.video`
+  max-height: 720px;
+  width: 100%;
+  object-fit: cover;
+`;
+
 const Video = () => {
   const { currentUser } = useSelector((state) => state.user);
   const { currentVideo } = useSelector((state) => state.video);
@@ -146,20 +153,19 @@ const Video = () => {
     dispatch(dislike(currentUser._id));
   };
 
+  const handleSub = async () => {
+    currentUser.subscribedUsers.includes(channel._id)
+      ? await axios.put(`/users/unsub/${channel._id}`)
+      : await axios.put(`/users/sub/${channel._id}`);
+    dispatch(subscription(channel._id));
+  };
+
   return (
     <Container>
       {currentVideo && (
         <Content>
           <VideoWrapper>
-            <iframe
-              width="100%"
-              height="720"
-              src="https://www.youtube.com/embed/eeIMITpJW4s"
-              title="YouTube video player"
-              frameborder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowfullscreen
-            ></iframe>
+            <VideoFrame src={currentVideo.videoUrl} />
           </VideoWrapper>
           <Title>{currentVideo.title}</Title>
           <Details>
@@ -201,7 +207,11 @@ const Video = () => {
                 <Description>{currentVideo.desc}</Description>
               </ChannelDetail>
             </ChannelInfo>
-            <Subscribe>SUBSCRIBE</Subscribe>
+            <Subscribe onClick={handleSub}>
+              {currentUser.subscribedUsers?.includes(channel._id)
+                ? "SUBSCRIBED"
+                : "SUBSCRIBE"}
+            </Subscribe>
           </Channel>
           <Hr />
           <Comments />
