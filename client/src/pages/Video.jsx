@@ -1,11 +1,18 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
 import ThumbDownOffAltOutlinedIcon from "@mui/icons-material/ThumbDownOffAltOutlined";
 import ReplyOutlinedIcon from "@mui/icons-material/ReplyOutlined";
 import AddTaskOutlinedIcon from "@mui/icons-material/AddTaskOutlined";
+import ThumbDownIcon from "@mui/icons-material/ThumbDown";
+import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import Comments from "../components/Comments";
 import Card from "../components/Card";
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
+import axios from "axios";
+import { fetchSuccess } from "../redux/videoSlice";
+import { format } from "timeago.js";
 
 const Container = styled.div`
   display: flex;
@@ -107,59 +114,80 @@ const Subscribe = styled.button`
 `;
 
 const Video = () => {
+  const { currentUser } = useSelector((state) => state.user);
+  const { currentVideo } = useSelector((state) => state.video);
+  const dispatch = useDispatch();
+
+  const path = useLocation().pathname.split("/")[2];
+
+  const [channel, setChannel] = useState({});
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const videoRes = await axios.get(`/videos/find/${path}`);
+        const channelRes = await axios.get(
+          `/users/find/${videoRes.data.userId}`
+        );
+        setChannel(channelRes.data);
+        dispatch(fetchSuccess(videoRes.data));
+      } catch (err) {}
+    };
+    fetchData();
+  }, [path, dispatch]);
+
   return (
     <Container>
-      <Content>
-        <VideoWrapper>
-          <iframe
-            width="100%"
-            height="720"
-            src="https://www.youtube.com/embed/eeIMITpJW4s"
-            title="YouTube video player"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-          ></iframe>
-        </VideoWrapper>
-        <Title>Test Video</Title>
-        <Details>
-          <Info>조회수 1,883,230회 • 2022. 7. 24.</Info>
-          <Buttons>
-            <Button>
-              <ThumbUpOutlinedIcon /> 2.2만
-            </Button>
-            <Button>
-              <ThumbDownOffAltOutlinedIcon /> 싫어요
-            </Button>
-            <Button>
-              <ReplyOutlinedIcon /> 공유
-            </Button>
-            <Button>
-              <AddTaskOutlinedIcon /> 저장
-            </Button>
-          </Buttons>
-        </Details>
-        <Hr />
-        <Channel>
-          <ChannelInfo>
-            <Image src="https://user-images.githubusercontent.com/83646986/181155356-b8d3e000-467e-426a-afb3-af5c7348d3a4.JPG" />
-            <ChannelDetail>
-              <ChannelName>황튜브</ChannelName>
-              <ChannelCounter>구독자 19.9만명</ChannelCounter>
-              <Description>
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Doloribus laborum delectus unde quaerat dolore culpa sit aliquam
-                at. Vitae facere ipsum totam ratione exercitationem. Suscipit
-                animi accusantium dolores ipsam ut.
-              </Description>
-            </ChannelDetail>
-          </ChannelInfo>
-          <Subscribe>SUBSCRIBE</Subscribe>
-        </Channel>
-        <Hr />
-        <Comments />
-      </Content>
-      <Recommendation>
+      {currentVideo && (
+        <Content>
+          <VideoWrapper>
+            <iframe
+              width="100%"
+              height="720"
+              src="https://www.youtube.com/embed/eeIMITpJW4s"
+              title="YouTube video player"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+            ></iframe>
+          </VideoWrapper>
+          <Title>{currentVideo.title}</Title>
+          <Details>
+            <Info>
+              조회수 {currentVideo.views}회 • {format(currentVideo.createdAt)}
+            </Info>
+            <Buttons>
+              <Button>
+                <ThumbUpOutlinedIcon /> {currentVideo.likes?.length}
+              </Button>
+              <Button>
+                <ThumbDownOffAltOutlinedIcon /> 싫어요
+              </Button>
+              <Button>
+                <ReplyOutlinedIcon /> 공유
+              </Button>
+              <Button>
+                <AddTaskOutlinedIcon /> 저장
+              </Button>
+            </Buttons>
+          </Details>
+          <Hr />
+          <Channel>
+            <ChannelInfo>
+              <Image src={channel.img} />
+              <ChannelDetail>
+                <ChannelName>{channel.name}</ChannelName>
+                <ChannelCounter>구독자 {channel.subscribers}명</ChannelCounter>
+                <Description>{currentVideo.desc}</Description>
+              </ChannelDetail>
+            </ChannelInfo>
+            <Subscribe>SUBSCRIBE</Subscribe>
+          </Channel>
+          <Hr />
+          <Comments />
+        </Content>
+      )}
+      {/* <Recommendation>
         <Card type="sm" />
         <Card type="sm" />
         <Card type="sm" />
@@ -172,7 +200,7 @@ const Video = () => {
         <Card type="sm" />
         <Card type="sm" />
         <Card type="sm" />
-      </Recommendation>
+      </Recommendation> */}
     </Container>
   );
 };
