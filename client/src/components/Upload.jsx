@@ -24,7 +24,7 @@ const Container = styled.div`
 
 const Wrapper = styled.div`
   width: 600px;
-  height: 800px;
+  height: 600px;
   background-color: ${({ theme }) => theme.bgLighter};
   color: ${({ theme }) => theme.text};
   padding: 20px;
@@ -70,7 +70,6 @@ const Button = styled.button`
 const Label = styled.label`
   font-size: 14px;
 `;
-
 const Upload = ({ setOpen }) => {
   const [img, setImg] = useState(undefined);
   const [video, setVideo] = useState(undefined);
@@ -146,8 +145,8 @@ const Upload = ({ setOpen }) => {
     <Container>
       <Wrapper>
         <Close onClick={() => setOpen(false)}>X</Close>
-        <Title>동영상 업로드</Title>
-        <Label>동영상 : </Label>
+        <Title>Upload a New Video</Title>
+        <Label>Video:</Label>
         {videoPerc > 0 ? (
           "Uploading:" + videoPerc
         ) : (
@@ -159,18 +158,22 @@ const Upload = ({ setOpen }) => {
         )}
         <Input
           type="text"
-          placeholder="제목"
-          name="제목"
+          placeholder="Title"
+          name="title"
           onChange={handleChange}
         />
         <Desc
-          placeholder="상세 설명"
-          name="상세 설명"
+          placeholder="Description"
+          name="desc"
           rows={8}
           onChange={handleChange}
         />
-        <Input type="text" placeholder="#태그" onChance={handleTags} />
-        <Label>대표 이미지 : </Label>
+        <Input
+          type="text"
+          placeholder="Separate the tags with commas."
+          onChance={handleTags}
+        />
+        <Label>Image:</Label>
         {imgPerc > 0 ? (
           "Uploading:" + imgPerc + "%"
         ) : (
@@ -180,7 +183,7 @@ const Upload = ({ setOpen }) => {
             onChange={(e) => setImg(e.target.files[0])}
           />
         )}
-        <Button onClick={handleUpload}>업로드</Button>
+        <Button onClick={handleUpload}>Upload</Button>
       </Wrapper>
     </Container>
   );
